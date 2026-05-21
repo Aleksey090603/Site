@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Индивидуальная математика</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+  <!-- Firebase SDK (совместимая версия) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+  <style>
+    /* ВСЕ СТИЛИ (без изменений, такие же как в вашем файле) */
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;background:#f6f7fb;color:#111827;line-height:1.5;padding-bottom:80px;}
+    header{background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:10;}
+    .topbar{max-width:1060px;margin:0 auto;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .brand b{font-size:18px}
+    .brand span{font-size:13px;color:#6b7280}
+    main{max-width:1060px;margin:0 auto;padding:24px 18px 52px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:22px;box-shadow:0 6px 24px rgba(17,24,39,.04);}
+    .grid{display:grid;gap:16px}
+    .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    h1,h2,h3{margin:0 0 10px}
+    h1{font-size:34px}
+    h2{font-size:24px}
+    h3{font-size:18px}
+    p{margin:0 0 12px}
+    .muted{color:#6b7280}
+    .small{font-size:13px}
+    .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .space{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    button,.btn{border:0;background:#2563eb;color:#fff;border-radius:12px;padding:11px 15px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;}
+    button.secondary{background:#111827}
+    button.ghost{background:#fff;color:#111827;border:1px solid #e5e7eb}
+    button.danger{background:#fee2e2;color:#991b1b}
+    button.success{background:#16a34a}
+    input,select,textarea{width:100%;border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:11px 12px;font:inherit;}
+    label{font-weight:700;font-size:14px;display:block;margin:12px 0 6px}
+    .pill{display:inline-flex;align-items:center;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:800;background:#eef2ff;color:#1d4ed8;white-space:nowrap;}
+    .pill.green{background:#dcfce7;color:#166534}
+    .pill.red{background:#fee2e2;color:#991b1b}
+    .pill.gray{background:#f3f4f6;color:#374151}
+    .pill.amber{background:#fef3c7;color:#92400e}
+    .question{padding:16px;border:1px solid #e5e7eb;border-radius:16px;background:#fff;margin-bottom:16px}
+    .task-item{padding:12px;border:1px solid #e5e7eb;border-radius:14px;margin-bottom:12px;background:#f9fafb}
+    .result-row{padding:12px;border:1px solid #e5e7eb;border-radius:14px;background:#fff}
+    .progress-wrap{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+    .progress-bar{height:100%;background:#16a34a;width:0%;transition:.25s}
+    .quest-list{display:grid;gap:10px}
+    .quest-item{padding:12px 14px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;display:flex;justify-content:space-between;gap:10px;align-items:center;}
+    .quest-item.locked{opacity:.55}
+    .quest-item.current{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+    .teacher-table-wrap{overflow:auto;border:1px solid #e5e7eb;border-radius:14px}
+    table{border-collapse:collapse;width:100%;min-width:900px;background:#fff}
+    th,td{border-bottom:1px solid #e5e7eb;padding:10px;text-align:left;font-size:13px;vertical-align:top}
+    th{background:#f9fafb;font-size:12px;color:#374151;position:sticky;top:0}
+    .ok{color:#16a34a;font-weight:900}
+    .bad{color:#dc2626;font-weight:900}
+    .notice{border-left:4px solid #2563eb;background:#eff6ff;padding:12px;border-radius:12px;color:#1e3a8a}
+    .warning{border-left:4px solid #d97706;background:#fffbeb;padding:12px;border-radius:12px;color:#78350f}
+    .footer-note{margin-top:16px;color:#6b7280;font-size:13px}
+    .video-container{position:relative;padding-bottom:56.25%;height:0;margin:12px 0}
+    .video-container iframe,.video-container video{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:12px}
+    video{width:100%;border-radius:12px;background:#000}
+    .task-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .task-status{width:24px;text-align:center}
+    .attachment-link{margin-top:8px;display:inline-block;background:#eef2ff;padding:6px 12px;border-radius:20px;font-size:13px;text-decoration:none;color:#1d4ed8}
+    .question-image{max-width:100%;max-height:250px;margin:10px 0;border-radius:12px;border:1px solid #e5e7eb}
+    .preview-img{max-width:150px;max-height:100px;border-radius:8px;margin-top:5px;border:1px solid #ddd}
+    .level-selector{display:flex;gap:10px;margin-bottom:16px;border-bottom:1px solid #e5e7eb;padding-bottom:8px}
+    .level-tab{background:#f3f4f6;color:#374151;padding:8px 16px;border-radius:24px;cursor:pointer;font-weight:600}
+    .level-tab.active{background:#2563eb;color:white}
+    .chatbot-btn{position:fixed;bottom:20px;right:20px;background:#2563eb;color:white;width:56px;height:56px;border-radius:28px;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:100;border:none;}
+    .chatbot-window{position:fixed;bottom:90px;right:20px;width:350px;max-width:calc(100vw - 40px);height:450px;background:white;border-radius:18px;box-shadow:0 10px 25px rgba(0,0,0,0.2);display:flex;flex-direction:column;z-index:100;border:1px solid #e5e7eb;overflow:hidden;}
+    .chatbot-header{background:#2563eb;color:white;padding:12px 16px;font-weight:bold;display:flex;justify-content:space-between;align-items:center;}
+    .chatbot-messages{flex:1;overflow-y:auto;padding:12px;background:#f9fafb;display:flex;flex-direction:column;gap:8px;}
+    .chatbot-message{max-width:85%;padding:8px 12px;border-radius:16px;font-size:14px;line-height:1.4;}
+    .chatbot-message.user{background:#2563eb;color:white;align-self:flex-end;border-bottom-right-radius:4px;}
+    .chatbot-message.bot{background:white;border:1px solid #e5e7eb;align-self:flex-start;border-bottom-left-radius:4px;}
+    .chatbot-input{display:flex;border-top:1px solid #e5e7eb;padding:10px;background:white;}
+    .chatbot-input input{flex:1;border-radius:20px;margin-right:8px;}
+    .chatbot-input button{padding:0 16px;border-radius:20px;}
+    .hide{display:none;}
+    @media (max-width:760px){h1{font-size:28px}.grid-2{grid-template-columns:1fr}.topbar{align-items:flex-start}.chatbot-window{width:300px;height:400px;bottom:80px;}
+  </style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div class="brand"><b>Индивидуальная математика</b><span></span></div>
+    <div class="row">
+      <button class="ghost" onclick="renderHome()">Главная</button>
+      <button class="ghost" onclick="renderStudentStart()">Ученик</button>
+      <button class="secondary" onclick="renderTeacherLogin()">Учитель</button>
+    </div>
+  </div>
+</header>
+<main id="app"></main>
+<div id="chatbotContainer"></div>
+
+<script>
+  // ======================== FIREBASE ========================
+  const firebaseConfig = {
+    apiKey: "AIzaSyAgtW05eKedRWkdFFZgPYNnHUaMHB8_Paw",
+    authDomain: "math-sync-bcf08.firebaseapp.com",
+    databaseURL: "https://math-sync-bcf08-default-rtdb.firebaseio.com/",
+    projectId: "math-sync-bcf08",
+    storageBucket: "math-sync-bcf08.firebasestorage.app",
+    messagingSenderId: "47723774806",
+    appId: "1:47723774806:web:fbff8fb579f525b24dccf7"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
+
+  // ======================== ДАННЫЕ ПО УМОЛЧАНИЮ ========================
+  const defaultTopics = [
+    { id: "numbers", short: "Числовые выражения", title: "Числовые выражения", course: "Алгебра", desc: "Действия с числами, порядок действий, степени, корни." },
+    { id: "equations", short: "Алгебраические выражения", title: "Алгебраические выражения", course: "Алгебра", desc: "Преобразование выражений, формулы сокращённого умножения." },
+    { id: "systems", short: "Уравнения, системы уравнений", title: "Уравнения, системы уравнений", course: "Алгебра", desc: "Линейные, квадратные уравнения, системы уравнений." },
+    { id: "inequalities", short: "Неравенства и их системы", title: "Неравенства и их системы", course: "Алгебра", desc: "Линейные и квадратные неравенства, системы неравенств." },
+    { id: "functions", short: "Функции и графики", title: "Функции и графики", course: "Алгебра", desc: "Линейная, квадратичная функции, чтение графиков." },
+    { id: "progressions", short: "Последовательности и прогрессии", title: "Последовательности и прогрессии", course: "Алгебра", desc: "Арифметическая и геометрическая прогрессии." },
+    { id: "triangles", short: "Геометрия", title: "Геометрия", course: "Геометрия", desc: "Планиметрия, теоремы, площади, теорема Пифагора." },
+    { id: "vectors", short: "Текстовые задачи", title: "Текстовые задачи", course: "Алгебра", desc: "Задачи на движение, работу, проценты." },
+    { id: "probability", short: "Вероятность и статистика", title: "Вероятность и статистика", course: "Статистика", desc: "Комбинаторика, классическая вероятность, статистика." }
+  ];
+
+  const defaultQuestionsData = [
+    { id:"q_num1", topicId:"numbers", level:1, latex:"Вычислите: \\(\\sqrt{81}+2^{-1}\\)", correctAnswer:"9,5", explanation:"", imageData:"" },
+    { id:"q_num2", topicId:"numbers", level:2, latex:"Найдите значение \\(\\frac{2^{-3} \\cdot 4^2}{8^{-1}}\\)", correctAnswer:"16", explanation:"", imageData:"" },
+    { id:"q_num3", topicId:"numbers", level:3, latex:"Вычислите \\(\\sqrt{5+2\\sqrt{6}} + \\sqrt{5-2\\sqrt{6}}\\)", correctAnswer:"2√3", explanation:"", imageData:"" },
+    { id:"q_eq1", topicId:"equations", level:1, latex:"Решите уравнение \\(x^2-5x+6=0\\) (корни через ;)", correctAnswer:"2;3", explanation:"", imageData:"" },
+    { id:"q_eq2", topicId:"equations", level:2, latex:"Решите уравнение \\(\\frac{x}{x-2} + \\frac{2}{x+2} = 1\\)", correctAnswer:"-2", explanation:"", imageData:"" },
+    { id:"q_eq3", topicId:"equations", level:3, latex:"Решите биквадратное уравнение \\(x^4 - 5x^2 + 4 = 0\\) (корни через ;)", correctAnswer:"-2;-1;1;2", explanation:"", imageData:"" },
+    { id:"q_sys1", topicId:"systems", level:1, latex:"\\(\\begin{cases}x+y=5\\\\x-y=1\\end{cases}\\) (ответ x;y)", correctAnswer:"3;2", explanation:"", imageData:"" },
+    { id:"q_sys2", topicId:"systems", level:2, latex:"Решите систему: \\(\\begin{cases}2x+3y=7\\\\3x-2y=4\\end{cases}\\) (x;y)", correctAnswer:"2;1", explanation:"", imageData:"" },
+    { id:"q_sys3", topicId:"systems", level:3, latex:"Решите систему: \\(\\begin{cases} x^2+y^2=25\\\\ xy=12\\end{cases}\\) (пары через ;)", correctAnswer:"3;4;4;3;-3;-4;-4;-3", explanation:"", imageData:"" },
+    { id:"q_ineq1", topicId:"inequalities", level:1, latex:"\\(x^2-4<0\\) (интервал)", correctAnswer:"(-2;2)", explanation:"", imageData:"" },
+    { id:"q_ineq2", topicId:"inequalities", level:2, latex:"Решите неравенство \\(-x^2+3x+4 \\ge 0\\)", correctAnswer:"[-1;4]", explanation:"", imageData:"" },
+    { id:"q_ineq3", topicId:"inequalities", level:3, latex:"Решите \\(\\frac{x-3}{x+2} \\le 0\\)", correctAnswer:"(-2;3]", explanation:"", imageData:"" },
+    { id:"q_func1", topicId:"functions", level:1, latex:"Вершина параболы \\(y=(x-1)^2+2\\) (x;y)", correctAnswer:"1;2", explanation:"", imageData:"" },
+    { id:"q_func2", topicId:"functions", level:2, latex:"Найдите нули функции \\(y=x^2-4x+3\\) (через ;)", correctAnswer:"1;3", explanation:"", imageData:"" },
+    { id:"q_func3", topicId:"functions", level:3, latex:"При каких \\(a\\) уравнение \\(x^2-4x+|x-a|+2=0\\) имеет ровно 3 решения?", correctAnswer:"2", explanation:"", imageData:"" },
+    { id:"q_prog1", topicId:"progressions", level:1, latex:"\\(a_1=4, d=3\\). Найдите \\(a_5\\)", correctAnswer:"16", explanation:"", imageData:"" },
+    { id:"q_prog2", topicId:"progressions", level:2, latex:"Сумма первых 5 членов арифметической прогрессии, если a1=2, a5=10", correctAnswer:"30", explanation:"", imageData:"" },
+    { id:"q_prog3", topicId:"progressions", level:3, latex:"Найдите сумму всех двузначных чисел, кратных 3", correctAnswer:"1665", explanation:"", imageData:"" },
+    { id:"q_tri1", topicId:"triangles", level:1, latex:"Катеты 3 и 4, гипотенуза?", correctAnswer:"5", explanation:"", imageData:"" },
+    { id:"q_tri2", topicId:"triangles", level:2, latex:"В прямоугольном треугольнике угол 30°, противолежащий катет 5. Найдите гипотенузу.", correctAnswer:"10", explanation:"", imageData:"" },
+    { id:"q_tri3", topicId:"triangles", level:3, latex:"Стороны треугольника 13,14,15. Найдите высоту, проведённую к стороне 14.", correctAnswer:"12", explanation:"", imageData:"" },
+    { id:"q_vec1", topicId:"vectors", level:1, latex:"Поезд ехал 3 часа со скоростью 60 км/ч. Какое расстояние он проехал?", correctAnswer:"180", explanation:"", imageData:"" },
+    { id:"q_vec2", topicId:"vectors", level:2, latex:"За 5 часов лодка прошла 20 км по течению. Найдите скорость течения, если собственная скорость 3 км/ч", correctAnswer:"1", explanation:"", imageData:"" },
+    { id:"q_vec3", topicId:"vectors", level:3, latex:"Два пешехода вышли навстречу друг другу из пунктов A и B, расстояние 30 км. Скорость первого 4 км/ч, второго 5 км/ч. Через сколько часов они встретятся?", correctAnswer:"3.333", explanation:"", imageData:"" },
+    { id:"q_prob1", topicId:"probability", level:1, latex:"Сколько способов выбрать 2 из 5?", correctAnswer:"10", explanation:"", imageData:"" },
+    { id:"q_prob2", topicId:"probability", level:2, latex:"Вероятность выпадения орла при броске монеты 3 раза подряд?", correctAnswer:"0.125", explanation:"", imageData:"" },
+    { id:"q_prob3", topicId:"probability", level:3, latex:"В ящике 5 белых и 3 чёрных шара. Вынимают 2 шара. Какова вероятность, что они разного цвета?", correctAnswer:"0.5357", explanation:"", imageData:"" }
+  ];
+
+  const defaultMaterials = {
+    "numbers": {
+      basic: { text: "Базовый уровень: действия с числами, порядок операций.", videoUrl: "", tasks: [{"latex":"12 + 18 ÷ 3","answer":"18"}], imageData: "", attachment: "", attachmentName: "" },
+      medium: { text: "Средний уровень: степени, дроби.", videoUrl: "", tasks: [{"latex":"(2³·5²)/10","answer":"20"}], imageData: "", attachment: "", attachmentName: "" },
+      advanced: { text: "Углублённый уровень: радикалы, иррациональные числа.", videoUrl: "", tasks: [{"latex":"√50 - √18","answer":"2√2"}], imageData: "", attachment: "", attachmentName: "" }
+    },
+    "equations": {
+      basic: { text: "Базовый уровень: линейные уравнения.", videoUrl: "", tasks: [{"latex":"5x-7=3x+3","answer":"5"}], imageData: "", attachment: "", attachmentName: "" },
+      medium: { text: "Средний уровень: квадратные уравнения.", videoUrl: "", tasks: [{"latex":"x²-7x+12=0","answer":"3;4"}], imageData: "", attachment: "", attachmentName: "" },
+      advanced: { text: "Углублённый уровень: биквадратные уравнения, параметры.", videoUrl: "", tasks: [{"latex":"x⁴-5x²+4=0","answer":"-2;-1;1;2"}], imageData: "", attachment: "", attachmentName: "" }
+    },
+    "systems": {
+      basic: { text: "Базовый уровень: системы линейных уравнений (подстановка).", videoUrl: "", tasks: [{"latex":"{x+y=7, x-y=1}","answer":"4;3"}], imageData: "", attachment: "", attachmentName: "" },
+      medium: { text: "Средний уровень: системы (метод сложения).", videoUrl: "", tasks: [{"latex":"{2x+3y=7, 3x-2y=4}","answer":"2;1"}], imageData: "", attachment: "", attachmentName: "" },
+      advanced: { text: "Углублённый уровень: системы, сводящиеся к квадратным.", videoUrl: "", tasks: [{"latex":"{x²+y²=25, xy=12}","answer":"3;4"}], imageData: "", attachment: "", attachmentName: "" }
+    },
+    "inequalities": {
+      basic: { text: "Базовый уровень: линейные неравенства.", videoUrl: "", tasks: [{"latex":"x-3>5","answer":"(8;+∞)"}], imageData: "", attachment: "", attachmentName: "" },
+      medium: { text: "Средний уровень: квадратные неравенства.", videoUrl: "", tasks: [{"latex":"x²-9<0","answer":"(-3;3)"}], imageData: "", attachment: "", attachmentName: "" },
+      advanced: { text: "Углублённый уровень: дробно-рациональные неравенства.", videoUrl: "", tasks: [{"latex":"(x-3)/(x+2)≤0","answer":"(-2;3]"}], imageData: "", attachment: "", attachmentName: "" }
+    },
+    "functions": {
+      basic: { text: "Базовый уровень: значение линейной функции.", videoUrl: "", tasks: [{"latex":"y=2x-3 при x=4","answer":"5"}], imageData: "", attachment: "", attachmentName: "" },
+      medium: { text: "Средний уровень: квадратичная функция, вершина.", videoUrl: "", tasks: [{"latex":"Вершина y=(x+2)²-5","answer":"(-2;-5)"}], imageData: "", attachment: "", attachmentName: "" },
+      advanced: { text: "Углублённый уровень: нули функции, преобразования графиков.", videoUrl: "", tasks: [{"latex":"Нули y=x²-4x+3","answer":"1;3"}], imageData: "", attachment: "", attachmentName: "" }
+    },
+    "progressions": {
+      basic: { text: "Базовый уровень: арифметическая прогрессия (n-й член).", videoUrl: "", tasks: [{"latex":"a1=2, d=3, a5","answer":"14"}], imageData: "", attachment: "", attachmentName: "" },
+      medium: { text: "Средний уровень: сумма арифметической прогрессии.", videoUrl: "", tasks: [{"latex":"a1=2, d=3, S5","answer":"40"}], imageData: "", attachment: "", attachmentName: "" },
+      advanced: { text: "Углублённый уровень: геометрическая прогрессия.", videoUrl: "", tasks: [{"latex":"b1=2, q=0.5, S∞","answer":"4"}], imageData: "", attachment: "", attachmentName: "" }
+    },
+    "triangles": {
+      basic: { text: "Базовый уровень: теорема Пифагора.", videoUrl: "", tasks: [{"latex":"Катеты 3 и 4, гипотенуза","answer":"5"}], imageData: "", attachment: "", attachmentName: "" },
+      medium: { text: "Средний уровень: площадь треугольника.", videoUrl: "", tasks: [{"latex":"Стороны 5,5,6, площадь","answer":"12"}], imageData: "", attachment: "", attachmentName: "" },
+      advanced: { text: "Углублённый уровень: формула Герона, теоремы синусов/косинусов.", videoUrl: "", tasks: [{"latex":"Стороны 13,14,15, площадь","answer":"84"}], imageData: "", attachment: "", attachmentName: "" }
+    },
+    "vectors": {
+      basic: { text: "Базовый уровень: задачи на движение (расстояние).", videoUrl: "", tasks: [{"latex":"Поезд 3ч, 60км/ч, расстояние","answer":"180"}], imageData: "", attachment: "", attachmentName: "" },
+      medium: { text: "Средний уровень: задачи на движение по течению.", videoUrl: "", tasks: [{"latex":"5ч, 20км, лодка 3, скорость течения","answer":"1"}], imageData: "", attachment: "", attachmentName: "" },
+      advanced: { text: "Углублённый уровень: встречное движение.", videoUrl: "", tasks: [{"latex":"30км, скорости 4 и 5, время встречи","answer":"3.333"}], imageData: "", attachment: "", attachmentName: "" }
+    },
+    "probability": {
+      basic: { text: "Базовый уровень: комбинаторика, сочетания.", videoUrl: "", tasks: [{"latex":"выбрать 2 из 5","answer":"10"}], imageData: "", attachment: "", attachmentName: "" },
+      medium: { text: "Средний уровень: классическая вероятность.", videoUrl: "", tasks: [{"latex":"орёл при 3 бросках","answer":"0.125"}], imageData: "", attachment: "", attachmentName: "" },
+      advanced: { text: "Углублённый уровень: вероятность с шарами.", videoUrl: "", tasks: [{"latex":"5б,3ч, два разного цвета","answer":"0.5357"}], imageData: "", attachment: "", attachmentName: "" }
+    }
+  };
+
+  // ======================== РАБОТА С НАСТРОЙКАМИ (ТОЛЬКО ЧЕРЕЗ FIREBASE) ========================
+  let cachedSettings = null;
+  async function loadSettingsFromFirebase() {
+    if (cachedSettings) return cachedSettings;
+    try {
+      const snapshot = await database.ref('settings').once('value');
+      let data = snapshot.val();
+      if (data && data.questionsData && data.materials) {
+        cachedSettings = data;
+      } else {
+        const defaultData = {
+          questionsData: JSON.parse(JSON.stringify(defaultQuestionsData)),
+          materials: JSON.parse(JSON.stringify(defaultMaterials)),
+          telegramBotUsername: ""
+        };
+        cachedSettings = defaultData;
+        await database.ref('settings').set(defaultData);
+      }
+      return cachedSettings;
+    } catch(e) { console.error(e); return { questionsData: defaultQuestionsData, materials: defaultMaterials, telegramBotUsername: "" }; }
+  }
+  async function saveSettingsToFirebase(settings) { cachedSettings = settings; await database.ref('settings').set(settings); }
+  async function getSettings() { return await loadSettingsFromFirebase(); }
+  async function saveSettings(settings) { await saveSettingsToFirebase(settings); }
+
+  // ======================== РАБОТА С УЧЕНИКАМИ (ТОЛЬКО localStorage, НЕ МЕНЯЕМ) ========================
+  const STORAGE = { students: "mathroute9_v10_students", settings: "mathroute9_v10_settings" };
+  function safeJsonParse(value, fallback){ try { return JSON.parse(value) ?? fallback; } catch(e){ return fallback; } }
+  function getStudents(){ return safeJsonParse(localStorage.getItem(STORAGE.students), []); }
+  function saveStudents(students){ localStorage.setItem(STORAGE.students, JSON.stringify(students)); }
+
+  // ======================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ========================
+  function shuffleArray(arr) { for (let i = arr.length-1; i>0; i--) { const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+  function topicById(id) { return defaultTopics.find(t=>t.id===id) || defaultTopics[0]; }
+  function escapeHTML(str) { return String(str??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
+  function formatText(str) { return escapeHTML(str).replace(/\n/g,"<br>"); }
+  function normalizeAnswer(v) { return String(v??"").toLowerCase().replaceAll(" ","").replaceAll(",",".").replace(/[\u2013\u2014−]/g,"-").replace(/[{}\[\]]/g,"").replaceAll(";",";").trim(); }
+  function answersEqual(a,b) { return normalizeAnswer(a)===normalizeAnswer(b); }
+  function embedVideo(url){
+    if(!url) return "";
+    let u = url.trim();
+    let yt = u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/);
+    if(yt) return `<div class="video-container"><iframe src="https://www.youtube.com/embed/${yt[1]}" frameborder="0" allowfullscreen></iframe></div>`;
+    let vm = u.match(/vimeo\.com\/(\d+)/);
+    if(vm) return `<div class="video-container"><iframe src="https://player.vimeo.com/video/${vm[1]}" frameborder="0" allowfullscreen></iframe></div>`;
+    if(/\.(mp4|webm|ogg)(\?|$)/i.test(u)) return `<video controls><source src="${escapeHTML(u)}" type="video/mp4"></video>`;
+    return `<div class="warning">Видео не встроено. <a href="${escapeHTML(u)}" target="_blank">Открыть ссылку</a></div>`;
+  }
+  function renderMathInElement(el){
+    if(!el||!window.katex) return;
+    let walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.textContent.includes('\\(')||n.textContent.includes('\\[')?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_SKIP});
+    let nodes=[];
+    while(walker.nextNode()) nodes.push(walker.currentNode);
+    for(let tn of nodes){
+      let text=tn.textContent;
+      let newHtml='', last=0;
+      let regex=/\\\[(.*?)\\\]|\\\((.*?)\\\)/gs,m;
+      while((m=regex.exec(text))!==null){
+        let full=m[0], isDisplay=full.startsWith('\\['), latex=m[1]||m[2];
+        newHtml+=escapeHTML(text.substring(last,m.index));
+        try{ newHtml+=katex.renderToString(latex,{throwOnError:false,displayMode:isDisplay}); }catch(e){ newHtml+=escapeHTML(full); }
+        last=m.index+full.length;
+      }
+      newHtml+=escapeHTML(text.substring(last));
+      if(newHtml!==escapeHTML(text)){ let span=document.createElement('span'); span.innerHTML=newHtml; tn.parentNode.replaceChild(span,tn); }
+    }
+  }
+  function setApp(html){ document.getElementById("app").innerHTML=html; renderMathInElement(document.getElementById("app")); }
+
+  // ======================== ДИАГНОСТИКА (АСИНХРОННАЯ) ========================
+  let pendingDiagnostic = null, shuffledQuestions = [];
+  async function renderDiagnostic(){
+    const settings = await getSettings();
+    shuffledQuestions = shuffleArray([...settings.questionsData]);
+    let html = `<div class="card"><h2>Диагностический тест</h2><p>Всего ${shuffledQuestions.length} заданий. Решите все задания.</p><p>После прохождения теста Вам будет предложен индивидуальный маршрут.</p></div><form id="diagForm">`;
+    for(let idx=0; idx<shuffledQuestions.length; idx++){
+      let q = shuffledQuestions[idx];
+      let imgHtml = q.imageData ? `<div><img src="${escapeHTML(q.imageData)}" class="question-image"></div>` : "";
+      html += `<div class="question"><p>${formatText(q.latex)}</p>${imgHtml}<label>Ваш ответ</label><input type="text" id="ans_${q.id}" autocomplete="off"></div>`;
+    }
+    html += `<button type="submit">Завершить диагностику</button></form>`;
+    setApp(html);
+    const form = document.getElementById("diagForm");
+    if(form) form.onsubmit = (e) => { e.preventDefault(); finishDiagnostic(); };
+  }
+  async function finishDiagnostic(){
+    const settings = await getSettings();
+    const results = []; let allAnswered = true;
+    for(let q of shuffledQuestions){
+      const inp = document.getElementById(`ans_${q.id}`);
+      const ans = inp ? inp.value.trim() : "";
+      if(!ans) allAnswered=false;
+      results.push({ topicId: q.topicId, level: q.level, correct: answersEqual(ans, q.correctAnswer) });
+    }
+    if(!allAnswered){ alert("Ответьте на все вопросы"); return; }
+    const topicStats = {};
+    for(let r of results){
+      if(!topicStats[r.topicId]) topicStats[r.topicId]={l1:false,l2:false,l3:false};
+      if(r.level===1 && r.correct) topicStats[r.topicId].l1=true;
+      if(r.level===2 && r.correct) topicStats[r.topicId].l2=true;
+      if(r.level===3 && r.correct) topicStats[r.topicId].l3=true;
+    }
+    const gaps = []; const assignedLevel = {};
+    for(let topic of defaultTopics){
+      const st = topicStats[topic.id] || {l1:false,l2:false,l3:false};
+      if(st.l3 === true) continue;
+      gaps.push(topic.id);
+      if(st.l1 && st.l2) assignedLevel[topic.id]="advanced";
+      else if(st.l1 || st.l2) assignedLevel[topic.id]="medium";
+      else assignedLevel[topic.id]="basic";
+    }
+    pendingDiagnostic = { id: "diag_"+Date.now(), results, gaps, assignedLevel, score: results.filter(r=>r.correct).length, total: results.length, topicStats };
+    renderDiagnosticResult();
+  }
+  function renderDiagnosticResult(){
+    if(!pendingDiagnostic){ renderDiagnostic(); return; }
+    let html = `<div class="card"><h2>Результат диагностики</h2><p>Правильных ответов: ${pendingDiagnostic.score}/${pendingDiagnostic.total}</p><button onclick="renderRegister()">Построить маршрут</button><button class="ghost" onclick="renderDiagnostic()">Пройти заново</button></div><div class="grid">`;
+    for(let topic of defaultTopics){
+      const st = pendingDiagnostic.topicStats[topic.id] || {l1:false,l2:false,l3:false};
+      let status = st.l3 ? "✅ Освоен" : "⚠️ В маршруте";
+      let levelInfo = st.l3 ? "Раздел пропущен" : (pendingDiagnostic.assignedLevel[topic.id]==="basic"?"Базовый":pendingDiagnostic.assignedLevel[topic.id]==="medium"?"Средний":"Углублённый");
+      html += `<div class="result-row space"><div><b>${escapeHTML(topic.title)}</b><br><span class="small">Лёгкое: ${st.l1?"✅":"❌"} | Среднее: ${st.l2?"✅":"❌"} | Сложное: ${st.l3?"✅":"❌"}</span><br><span class="small">${levelInfo}</span></div><span class="pill ${st.l3?"green":"amber"}">${status}</span></div>`;
+    }
+    html += `</div>`;
+    setApp(html);
+  }
+  function renderRegister(){
+    if(!pendingDiagnostic){ renderDiagnostic(); return; }
+    const routeIds = pendingDiagnostic.gaps.length ? pendingDiagnostic.gaps : ["review"];
+    const routeHtml = routeIds.map((id,i)=>`<li>${i+1}. ${id==="review"?"Повторение":topicById(id).title} (${pendingDiagnostic.assignedLevel[id]==="basic"?"Базовый":pendingDiagnostic.assignedLevel[id]==="medium"?"Средний":"Углублённый"})</li>`).join("");
+    setApp(`
+      <div class="card"><h2>Регистрация</h2><label>ФИО ученика</label><input id="regName"><label>Класс</label><input id="regClass" value="9"><button onclick="registerStudent()">Зарегистрироваться и начать квест</button></div>
+      <div class="card"><h3>Ваш индивидуальный маршрут</h3><ol>${routeHtml}</ol></div>
+    `);
+  }
+  function registerStudent(){
+    const name = document.getElementById("regName").value.trim();
+    if(!name) return alert("Введите имя");
+    const route = pendingDiagnostic.gaps.length ? pendingDiagnostic.gaps : ["review"];
+    const topicProgress = {};
+    for(let id of route) if(id !== "review") topicProgress[id] = { currentLevel: pendingDiagnostic.assignedLevel[id] || "basic", completedLevels: [] };
+    const student = {
+      id: "st_"+Date.now(),
+      name,
+      className: document.getElementById("regClass").value.trim() || "9",
+      diagnostic: pendingDiagnostic,
+      route,
+      assignedLevel: pendingDiagnostic.assignedLevel,
+      topicProgress,
+      completedTopics: [],
+      tasksStatus: {},
+      lastActivity: new Date().toISOString()
+    };
+    const students = getStudents();
+    students.push(student);
+    saveStudents(students);
+    pendingDiagnostic = null;
+    renderQuest(student.id);
+  }
+
+  // ======================== КВЕСТ (АСИНХРОННЫЙ, НО УЧЕНИКИ ИЗ localStorage) ========================
+  function getStudent(id){ return getStudents().find(s=>s.id===id); }
+  function saveStudent(upd){ const sts = getStudents().map(s=>s.id===upd.id?upd:s); saveStudents(sts); }
+  async function renderStudentStart(){
+    const students = getStudents();
+    const options = students.map(s=>`<option value="${s.id}">${escapeHTML(s.name)} — ${escapeHTML(s.className)}</option>`).join("");
+    setApp(`
+      <div class="card"><h2>Ученик</h2><button onclick="renderDiagnostic()">Пройти диагностику</button></div>
+      <div class="card"><h3>Продолжить маршрут</h3>${students.length?`<select id="studentSelect">${options}</select><button onclick="openSelectedStudent()">Открыть</button>`:"<p>Нет учеников</p>"}</div>
+    `);
+  }
+  function openSelectedStudent(){ const id = document.getElementById("studentSelect")?.value; if(id) renderQuest(id); }
+  async function renderQuest(studentId){
+    const student = getStudent(studentId);
+    if(!student) return renderStudentStart();
+    const settings = await getSettings();
+    let currentTopicId = null;
+    for(let id of student.route) if(!student.completedTopics.includes(id)) { currentTopicId = id; break; }
+    const isFinished = !currentTopicId;
+    const list = student.route.map((id,idx)=>{
+      const topic = id==="review"?{short:"Повторение"}:topicById(id);
+      const isCompleted = student.completedTopics.includes(id);
+      const isCurrent = id === currentTopicId;
+      let levelText = "";
+      if(!isCompleted && id!=="review" && student.topicProgress && student.topicProgress[id]) levelText = ` (${student.topicProgress[id].currentLevel==="basic"?"Б":student.topicProgress[id].currentLevel==="medium"?"С":"У"})`;
+      return `<div class="quest-item ${isCurrent?"current":""} ${!isCompleted && !isCurrent && id!=="review"?"locked":""}"><div><b>${idx+1}. ${escapeHTML(topic.short)}</b>${levelText}</div><span class="pill ${isCompleted?"green":isCurrent?"amber":"gray"}">${isCompleted?"пройдено":isCurrent?"сейчас":"закрыто"}</span></div>`;
+    }).join("");
+    let content = "";
+    if(isFinished){
+      content = `<div class="card"><h2>🎉 Квест завершён!</h2><button class="ghost" onclick="renderStudentStart()">Вернуться</button></div>`;
+    } else if(currentTopicId === "review"){
+      content = `<div class="card"><h2>Повторение</h2><button class="success" onclick="completeTopic('${student.id}','review')">Завершить повторение</button></div>`;
+    } else {
+      const topic = topicById(currentTopicId);
+      if(!student.topicProgress[currentTopicId]) student.topicProgress[currentTopicId] = { currentLevel: student.assignedLevel[currentTopicId] || "basic", completedLevels: [] };
+      const currentLevel = student.topicProgress[currentTopicId].currentLevel;
+      const material = settings.materials[currentTopicId]?.[currentLevel] || { text:"", videoUrl:"", tasks:[], imageData:"", attachment:"", attachmentName:"" };
+      if(!material.tasks) material.tasks = [];
+      const tasksKey = `${currentTopicId}_${currentLevel}`;
+      if(!student.tasksStatus) student.tasksStatus = {};
+      if(!student.tasksStatus[tasksKey]) student.tasksStatus[tasksKey] = {};
+      const tasksStatus = student.tasksStatus[tasksKey];
+      let allTasksDone = true;
+      const tasksHtml = material.tasks.map((task,idx)=>{
+        const isDone = tasksStatus[idx] === true;
+        if(!isDone) allTasksDone = false;
+        return `<div class="task-item"><div class="task-header"><span class="task-status">${isDone?"✅":"❌"}</span><strong>Задание ${idx+1}</strong></div><div class="notice">${formatText(task.latex)}</div><div class="row"><input type="text" id="task_${currentTopicId}_${currentLevel}_${idx}" placeholder="Ваш ответ"><button onclick="checkTaskLevel('${student.id}','${currentTopicId}','${currentLevel}',${idx})">Проверить</button></div><div id="fb_${currentTopicId}_${currentLevel}_${idx}" class="small muted"></div></div>`;
+      }).join("");
+      let nextButton = "";
+      if(allTasksDone){
+        if(currentLevel === "basic") nextButton = `<button class="success" onclick="advanceLevel('${student.id}','${currentTopicId}','medium')">✅ Перейти на средний уровень</button>`;
+        else if(currentLevel === "medium") nextButton = `<button class="success" onclick="advanceLevel('${student.id}','${currentTopicId}','advanced')">✅ Перейти на углублённый уровень</button>`;
+        else if(currentLevel === "advanced") nextButton = `<button class="success" onclick="completeTopic('${student.id}','${currentTopicId}')">🏆 Завершить раздел</button>`;
+      }
+      const videoHtml = material.videoUrl ? embedVideo(material.videoUrl) : `<p class="muted">Видео нет</p>`;
+      let attachmentHtml = material.attachment && material.attachmentName ? `<div><a href="${escapeHTML(material.attachment)}" class="attachment-link" download="${escapeHTML(material.attachmentName)}">📎 Скачать файл: ${escapeHTML(material.attachmentName)}</a></div>` : "";
+      let imageHtml = material.imageData ? `<div><img src="${escapeHTML(material.imageData)}" class="question-image"></div>` : "";
+      content = `<div class="card"><div class="space"><h2>${escapeHTML(topic.title)} — ${currentLevel==="basic"?"Базовый":currentLevel==="medium"?"Средний":"Углублённый"} уровень</h2><span class="pill amber">текущий раздел</span></div><p>${escapeHTML(topic.desc)}</p><h3>Материал</h3><p>${formatText(material.text||"")}</p>${imageHtml}<h3>Видео</h3>${videoHtml}<h3>Файлы</h3>${attachmentHtml || "<p class='muted'>Нет файлов</p>"}<h3>Задания (все обязательны)</h3>${tasksHtml}${nextButton}</div>`;
+    }
+    setApp(`<section class="grid grid-2"><div class="card"><div class="space"><h2>${escapeHTML(student.name)}</h2><span class="pill green">${Math.round(student.completedTopics.length/(student.route.length||1)*100)}%</span></div><div class="progress-wrap"><div class="progress-bar" style="width:${student.completedTopics.length/(student.route.length||1)*100}%"></div></div><h3>Маршрут</h3><div class="quest-list">${list}</div></div>${content}</section>`);
+    if(window.updateChatbotContext) window.updateChatbotContext(currentTopicId);
+  }
+  async function checkTaskLevel(studentId, topicId, level, taskIndex){
+    const student = getStudent(studentId);
+    if(!student) return;
+    const settings = await getSettings();
+    const material = settings.materials[topicId]?.[level];
+    if(!material || !material.tasks[taskIndex]) return;
+    const inp = document.getElementById(`task_${topicId}_${level}_${taskIndex}`);
+    const ans = inp ? inp.value.trim() : "";
+    const correct = answersEqual(ans, material.tasks[taskIndex].answer);
+    const fb = document.getElementById(`fb_${topicId}_${level}_${taskIndex}`);
+    if(correct){
+      const tasksKey = `${topicId}_${level}`;
+      if(!student.tasksStatus) student.tasksStatus = {};
+      if(!student.tasksStatus[tasksKey]) student.tasksStatus[tasksKey] = {};
+      student.tasksStatus[tasksKey][taskIndex] = true;
+      saveStudent(student);
+      if(fb) fb.innerHTML = "✅ Верно! Задание зачтено.";
+      renderQuest(student.id);
+    } else { if(fb) fb.innerHTML = "❌ Неверно. Попробуйте ещё раз."; }
+  }
+  async function advanceLevel(studentId, topicId, nextLevel){
+    const student = getStudent(studentId);
+    if(!student) return;
+    const progress = student.topicProgress[topicId];
+    const currentLevel = progress.currentLevel;
+    const tasksKey = `${topicId}_${currentLevel}`;
+    const tasksStatus = student.tasksStatus?.[tasksKey] || {};
+    const settings = await getSettings();
+    const material = settings.materials[topicId]?.[currentLevel];
+    if(!material.tasks.every((_,idx)=>tasksStatus[idx]===true)){ alert("Сначала решите все задания текущего уровня"); return; }
+    if(!progress.completedLevels.includes(currentLevel)) progress.completedLevels.push(currentLevel);
+    progress.currentLevel = nextLevel;
+    saveStudent(student);
+    renderQuest(student.id);
+  }
+  async function completeTopic(studentId, topicId){
+    const student = getStudent(studentId);
+    if(!student) return;
+    if(topicId === "review"){ if(!student.completedTopics.includes(topicId)) student.completedTopics.push(topicId); saveStudent(student); renderQuest(student.id); return; }
+    const progress = student.topicProgress[topicId];
+    if(!progress || progress.currentLevel !== "advanced"){ alert("Сначала завершите углублённый уровень"); return; }
+    const tasksKey = `${topicId}_advanced`;
+    const tasksStatus = student.tasksStatus?.[tasksKey] || {};
+    const settings = await getSettings();
+    const material = settings.materials[topicId]?.advanced;
+    if(!material.tasks.every((_,idx)=>tasksStatus[idx]===true)){ alert("Сначала решите все задания углублённого уровня"); return; }
+    if(!student.completedTopics.includes(topicId)) student.completedTopics.push(topicId);
+    saveStudent(student);
+    renderQuest(student.id);
+  }
+
+  // ======================== УЧИТЕЛЬ (АСИНХРОННЫЙ, РАБОТАЕТ С FIREBASE) ========================
+  function renderTeacherLogin(){ setApp(`<div class="card"><h2>Вход учителя</h2><input id="tc" type="password" placeholder="Код 1111"><button onclick="checkCode()">Войти</button><p id="err"></p></div>`); }
+  function checkCode(){ if(document.getElementById("tc").value==="1111") renderTeacherDashboard(); else document.getElementById("err").innerText="Неверный код"; }
+  function renderTeacherDashboard(tab="students"){
+    const active=(n)=>tab===n?"":"ghost";
+    setApp(`<div class="card"><div class="row"><button class="${active("students")}" onclick="renderTeacherDashboard('students')">Ученики</button><button class="${active("materials")}" onclick="renderTeacherDashboard('materials')">Материалы (3 уровня)</button><button class="${active("tests")}" onclick="renderTeacherDashboard('tests')">Вопросы диагн.</button><button class="${active("settings")}" onclick="renderTeacherDashboard('settings')">Настройки</button></div></div><div id="teacherPanel"></div>`);
+    if(tab==="students") renderTeacherStudents();
+    if(tab==="materials") renderTeacherMaterials();
+    if(tab==="tests") renderTeacherTests();
+    if(tab==="settings") renderTeacherSettings();
+  }
+  function renderTeacherStudents(){
+    const students = getStudents();
+    const panel = document.getElementById("teacherPanel");
+    if(!students.length){ panel.innerHTML = `<div class="card"><h3>📋 Результаты учеников</h3><p class="muted">Пока нет зарегистрированных учеников.</p></div>`; return; }
+    let html = `<div class="card"><div class="space"><div><h3>📊 Успеваемость учеников</h3><p class="muted">Всего учеников: ${students.length}</p></div><button class="danger" onclick="clearAllStudents()">🗑 Очистить всех учеников</button></div><div class="teacher-table-wrap"><table class="student-table"><thead><tr><th>Ученик</th><th>Класс</th><th>Диагностика</th><th>Прогресс</th><th>Завершено</th><th>Действия</th></tr></thead><tbody>`;
+    for(let s of students){
+      const diagScore = s.diagnostic ? `${s.diagnostic.score}/${s.diagnostic.total}` : "—";
+      const diagPercent = s.diagnostic ? Math.round(s.diagnostic.score/s.diagnostic.total*100) : 0;
+      const routeProgress = `${s.completedTopics.length}/${s.route.length}`;
+      let topicsHtml = `<div style="display:flex;flex-wrap:wrap;gap:6px;">`;
+      for(let id of s.route){
+        const topic = id==="review"?{short:"Повтор"}:topicById(id);
+        const isCompleted = s.completedTopics.includes(id);
+        let levelInfo = "";
+        if(!isCompleted && id!=="review" && s.topicProgress && s.topicProgress[id]) levelInfo = ` (${s.topicProgress[id].currentLevel==="basic"?"Б":s.topicProgress[id].currentLevel==="medium"?"С":"У"})`;
+        const color = isCompleted ? "green" : (id==="review"?"gray":"amber");
+        topicsHtml += `<span class="pill ${color}" style="font-size:11px">${escapeHTML(topic.short)}${levelInfo}</span>`;
+      }
+      topicsHtml += `</div>`;
+      html += `<tr>
+        <td><strong>${escapeHTML(s.name)}</strong><br><span class="small muted">${s.className}</span></td>
+        <td>${escapeHTML(s.className)}</td>
+        <td><div>${diagScore}</div><div class="progress-wrap" style="width:80px"><div class="progress-bar" style="width:${diagPercent}%;background:#2563eb"></div></div></td>
+        <td>${topicsHtml}</td>
+        <td>${routeProgress}</td>
+        <td><button class="ghost small" onclick="showStudentDetails('${s.id}')">📋 Детали</button></td>
+      </tr>`;
+    }
+    html += `</tbody></table></div></div>`;
+    panel.innerHTML = html;
+  }
+  function clearAllStudents(){ if(confirm("Удалить всех учеников?")){ localStorage.removeItem(STORAGE.students); renderTeacherDashboard("students"); } }
+  function showStudentDetails(studentId){
+    const student = getStudent(studentId);
+    if(!student) return;
+    const settings = getSettings(); // синхронный вызов - но getSettings теперь асинхронный. Нужно переделать.
+    // Проблема: showStudentDetails вызывается из onclick, но getSettings асинхронный. Переделаем в async.
+    (async()=>{
+      const settingsAsync = await getSettings();
+      let html = `<div class="card"><div class="space"><h2>📘 ${escapeHTML(student.name)} (${escapeHTML(student.className)})</h2><button class="ghost" onclick="renderTeacherDashboard('students')">← Назад</button></div>`;
+      if(student.diagnostic && student.diagnostic.results){
+        html += `<h3>Результаты диагностики (${student.diagnostic.score}/${student.diagnostic.total})</h3><div class="teacher-table-wrap"><table><thead><tr><th>№</th><th>Раздел</th><th>Уровень</th><th>Вопрос</th><th>Результат</th></tr></thead><tbody>`;
+        const questions = settingsAsync.questionsData;
+        for(let i=0; i<student.diagnostic.results.length; i++){
+          const r = student.diagnostic.results[i];
+          const question = questions.find(q=>q.topicId===r.topicId && q.level===r.level);
+          const qText = question ? question.latex.substring(0,60) : "вопрос";
+          html += `<tr><td>${i+1}</td><td>${topicById(r.topicId).short}</td><td>${r.level}</td><td>${escapeHTML(qText)}</td><td class="${r.correct?'ok':'bad'}">${r.correct?'✅ верно':'❌ неверно'}</td></tr>`;
+        }
+        html += `</tbody></table></div>`;
+      } else { html += `<p class="muted">Диагностика не пройдена.</p>`; }
+      html += `<h3>Прогресс по маршруту</h3><p>Всего тем: ${student.route.length}, завершено: ${student.completedTopics.length}</p>`;
+      if(student.topicProgress && Object.keys(student.topicProgress).length){
+        html += `<div class="grid grid-2">`;
+        for(let topicId of student.route){
+          if(topicId==="review") continue;
+          const topic = topicById(topicId);
+          const prog = student.topicProgress[topicId];
+          if(!prog) continue;
+          const current = prog.currentLevel;
+          const completed = prog.completedLevels || [];
+          let statusHtml = `<span class="pill amber">Текущий: ${current==='basic'?'Б':current==='medium'?'С':'У'}</span>`;
+          if(student.completedTopics.includes(topicId)) statusHtml = `<span class="pill green">✅ Завершена</span>`;
+          html += `<div class="card"><div class="space"><b>${escapeHTML(topic.short)}</b>${statusHtml}</div><div class="small">Пройденные уровни: ${completed.length ? completed.map(l=>l==='basic'?'Базовый':l==='medium'?'Средний':'Углублённый').join(', ') : 'нет'}</div>`;
+          const levels = ['basic','medium','advanced'];
+          for(let lvl of levels){
+            const tasks = settingsAsync.materials[topicId]?.[lvl]?.tasks || [];
+            if(tasks.length===0) continue;
+            const tasksKey = `${topicId}_${lvl}`;
+            const statusMap = (student.tasksStatus && student.tasksStatus[tasksKey]) ? student.tasksStatus[tasksKey] : {};
+            const doneCount = Object.values(statusMap).filter(v=>v===true).length;
+            const icon = (student.completedTopics.includes(topicId) && lvl===current) ? '✅' : (doneCount===tasks.length ? '✅' : (doneCount>0 ? '⚠️' : '❌'));
+            html += `<div><span class="pill gray">${lvl==='basic'?'Базовый':lvl==='medium'?'Средний':'Углублённый'}</span> ${icon} ${doneCount}/${tasks.length} заданий выполнено</div>`;
+            if(doneCount>0) html += `<div class="small muted">Решённые задания: ${Object.keys(statusMap).filter(k=>statusMap[k]===true).map(Number).sort((a,b)=>a-b).map(i=>i+1).join(', ') || '—'}</div>`;
+          }
+          html += `</div>`;
+        }
+        html += `</div>`;
+      } else { html += `<p class="muted">Ученик не начинал квест.</p>`; }
+      html += `</div>`;
+      document.getElementById("teacherPanel").innerHTML = html;
+    })();
+  }
+
+  // Редактор материалов (асинхронный, работает с Firebase)
+  async function renderTeacherMaterials(){
+    const settings = await getSettings();
+    const topicsOpts = defaultTopics.map(t=>`<option value="${t.id}">${escapeHTML(t.title)}</option>`).join("");
+    document.getElementById("teacherPanel").innerHTML = `
+      <div class="card"><div class="space"><h3>Материалы разделов (три уровня сложности)</h3><button class="danger" onclick="resetAll()">Сбросить всё</button></div>
+      <label>Раздел</label><select id="matTopic" onchange="loadMaterial()">${topicsOpts}</select>
+      <div class="level-selector" id="levelTabs"><div class="level-tab active" data-level="basic">Базовый уровень</div><div class="level-tab" data-level="medium">Средний уровень</div><div class="level-tab" data-level="advanced">Углублённый уровень</div></div>
+      <div id="levelEditor"></div><button onclick="saveMaterial()">Сохранить материал</button><div id="matPreview" class="notice" style="margin-top:12px"></div></div>
+    `;
+    window._curTopic = defaultTopics[0].id;
+    window._currentLevel = "basic";
+    window._tempData = {
+      basic: { text: "", videoUrl: "", tasks: [], imageData: "", attachment: "", attachmentName: "" },
+      medium: { text: "", videoUrl: "", tasks: [], imageData: "", attachment: "", attachmentName: "" },
+      advanced: { text: "", videoUrl: "", tasks: [], imageData: "", attachment: "", attachmentName: "" }
+    };
+    document.querySelectorAll(".level-tab").forEach(tab=>{ tab.addEventListener("click",()=>{ document.querySelectorAll(".level-tab").forEach(t=>t.classList.remove("active")); tab.classList.add("active"); window._currentLevel = tab.dataset.level; renderLevelEditor(); }); });
+    await loadMaterial();
+  }
+  async function loadMaterial(){
+    const settings = await getSettings();
+    const tid = document.getElementById("matTopic").value;
+    window._curTopic = tid;
+    const mat = settings.materials[tid] || defaultMaterials[tid];
+    window._tempData = {
+      basic: { ...(mat.basic || defaultMaterials[tid].basic), tasks: (mat.basic?.tasks || []).map(t=>({latex:t.latex, answer:t.answer})) },
+      medium: { ...(mat.medium || defaultMaterials[tid].medium), tasks: (mat.medium?.tasks || []).map(t=>({latex:t.latex, answer:t.answer})) },
+      advanced: { ...(mat.advanced || defaultMaterials[tid].advanced), tasks: (mat.advanced?.tasks || []).map(t=>({latex:t.latex, answer:t.answer})) }
+    };
+    renderLevelEditor();
+    previewMaterial();
+  }
+  function renderLevelEditor(){
+    const data = window._tempData[window._currentLevel];
+    const container = document.getElementById("levelEditor");
+    if(!container) return;
+    container.innerHTML = `
+      <label>Текст материала</label><textarea id="levelText" rows="3">${escapeHTML(data.text)}</textarea>
+      <label>Ссылка на видео</label><input id="levelVideo" value="${escapeHTML(data.videoUrl)}">
+      <label>Изображение для этого уровня (PNG, JPG)</label><input type="file" id="levelImageFile" accept="image/jpeg,image/png,image/gif,image/webp"><div id="levelImagePreview" class="small muted"></div><button type="button" class="danger small" id="deleteLevelImageBtn" style="display:none;">✕ Удалить изображение</button>
+      <label>Прикрепить файл (PDF, документ)</label><input type="file" id="levelAttachFile"><div id="levelAttachInfo" class="small muted"></div><button type="button" class="danger small" id="deleteLevelAttachBtn" style="display:none;">✕ Удалить файл</button>
+      <h4>Задания уровня</h4><div id="levelTasksList"></div><button class="ghost" onclick="addLevelTask()">+ Добавить задание</button>
+    `;
+    if(data.imageData){ document.getElementById("levelImagePreview").innerHTML = `<img src="${escapeHTML(data.imageData)}" class="preview-img"><br>`; document.getElementById("deleteLevelImageBtn").style.display = "inline-block"; }
+    if(data.attachment && data.attachmentName){ document.getElementById("levelAttachInfo").innerHTML = `Файл: ${escapeHTML(data.attachmentName)}`; document.getElementById("deleteLevelAttachBtn").style.display = "inline-block"; }
+    renderLevelTasksList();
+    document.getElementById("levelText").addEventListener("input", (e) => { window._tempData[window._currentLevel].text = e.target.value; previewMaterial(); });
+    document.getElementById("levelVideo").addEventListener("input", (e) => { window._tempData[window._currentLevel].videoUrl = e.target.value; previewMaterial(); });
+    document.getElementById("levelImageFile").addEventListener("change", (e) => { const file = e.target.files[0]; if(file && file.type.startsWith("image/")){ const reader = new FileReader(); reader.onload = (ev) => { window._tempData[window._currentLevel].imageData = ev.target.result; document.getElementById("levelImagePreview").innerHTML = `<img src="${ev.target.result}" class="preview-img"><br>`; document.getElementById("deleteLevelImageBtn").style.display = "inline-block"; previewMaterial(); }; reader.readAsDataURL(file); } });
+    document.getElementById("deleteLevelImageBtn")?.addEventListener("click",()=>{ window._tempData[window._currentLevel].imageData = ""; document.getElementById("levelImagePreview").innerHTML = ""; document.getElementById("deleteLevelImageBtn").style.display = "none"; document.getElementById("levelImageFile").value = ""; previewMaterial(); });
+    document.getElementById("levelAttachFile").addEventListener("change", (e) => { const file = e.target.files[0]; if(file){ const reader = new FileReader(); reader.onload = (ev) => { window._tempData[window._currentLevel].attachment = ev.target.result; window._tempData[window._currentLevel].attachmentName = file.name; document.getElementById("levelAttachInfo").innerHTML = `Файл: ${escapeHTML(file.name)}`; document.getElementById("deleteLevelAttachBtn").style.display = "inline-block"; previewMaterial(); }; reader.readAsDataURL(file); } });
+    document.getElementById("deleteLevelAttachBtn")?.addEventListener("click",()=>{ window._tempData[window._currentLevel].attachment = ""; window._tempData[window._currentLevel].attachmentName = ""; document.getElementById("levelAttachInfo").innerHTML = ""; document.getElementById("deleteLevelAttachBtn").style.display = "none"; document.getElementById("levelAttachFile").value = ""; previewMaterial(); });
+  }
+  function renderLevelTasksList(){
+    const container = document.getElementById("levelTasksList");
+    if(!container) return;
+    const tasks = window._tempData[window._currentLevel].tasks || [];
+    container.innerHTML = "";
+    tasks.forEach((t,idx)=>{
+      const div = document.createElement("div"); div.className = "task-item";
+      div.innerHTML = `<div class="row"><strong>Задание ${idx+1}</strong><button class="danger small" onclick="removeLevelTask(${idx})">Удалить</button></div><label>Текст (LaTeX)</label><textarea class="taskLatex" data-idx="${idx}" rows="2">${escapeHTML(t.latex)}</textarea><label>Правильный ответ</label><input class="taskAnswer" data-idx="${idx}" value="${escapeHTML(t.answer)}">`;
+      container.appendChild(div);
+    });
+    document.querySelectorAll("#levelTasksList .taskLatex").forEach(ta=>{ ta.addEventListener("input",(e)=>{ const idx = parseInt(e.target.dataset.idx); if(!isNaN(idx)) window._tempData[window._currentLevel].tasks[idx].latex = e.target.value; previewMaterial(); }); });
+    document.querySelectorAll("#levelTasksList .taskAnswer").forEach(inp=>{ inp.addEventListener("input",(e)=>{ const idx = parseInt(e.target.dataset.idx); if(!isNaN(idx)) window._tempData[window._currentLevel].tasks[idx].answer = e.target.value; previewMaterial(); }); });
+  }
+  function addLevelTask(){ window._tempData[window._currentLevel].tasks.push({latex:"Новое задание", answer:""}); renderLevelTasksList(); }
+  function removeLevelTask(idx){ window._tempData[window._currentLevel].tasks.splice(idx,1); renderLevelTasksList(); }
+  async function saveMaterial(){
+    const settings = await getSettings();
+    const tid = window._curTopic;
+    settings.materials[tid] = { basic: window._tempData.basic, medium: window._tempData.medium, advanced: window._tempData.advanced };
+    await saveSettings(settings);
+    alert("Материалы сохранены");
+    previewMaterial();
+  }
+  function previewMaterial(){
+    const previewDiv = document.getElementById("matPreview");
+    if(!previewDiv) return;
+    const data = window._tempData[window._currentLevel];
+    let tasksHtml = ""; (data.tasks || []).forEach((t,i)=>{ tasksHtml += `<div><b>${i+1}:</b> ${formatText(t.latex)}<br><span class="small">Ответ: ${escapeHTML(t.answer)}</span></div>`; });
+    let attachHtml = data.attachment && data.attachmentName ? `<div><a href="${escapeHTML(data.attachment)}" class="attachment-link" download="${escapeHTML(data.attachmentName)}">📎 Файл: ${escapeHTML(data.attachmentName)}</a></div>` : "";
+    let imageHtml = data.imageData ? `<div><img src="${escapeHTML(data.imageData)}" class="question-image" alt="Изображение"></div>` : "";
+    previewDiv.innerHTML = `<b>Предпросмотр (${window._currentLevel==="basic"?"Базовый":window._currentLevel==="medium"?"Средний":"Углублённый"}):</b><p>${formatText(data.text)}</p>${imageHtml}${embedVideo(data.videoUrl)}<h4>Вложения</h4>${attachHtml}<h4>Задания</h4>${tasksHtml}`;
+    renderMathInElement(previewDiv);
+  }
+
+  // Редактор вопросов диагностики (асинхронный)
+  async function renderTeacherTests(){
+    const settings = await getSettings();
+    const qs = settings.questionsData;
+    const topicsOpts = defaultTopics.map(t=>`<option value="${t.id}">${escapeHTML(t.title)}</option>`).join("");
+    document.getElementById("teacherPanel").innerHTML = `
+      <div class="card"><div class="space"><h3>Редактор вопросов диагностики</h3><button class="danger" onclick="resetQuestions()">Сбросить вопросы</button></div>
+      <label>Выберите вопрос</label><select id="qSelect" onchange="loadQuestion()">${qs.map((q,i)=>`<option value="${i}">${escapeHTML(topicById(q.topicId).short)} ур.${q.level}: ${q.latex.substring(0,50)}</option>`).join("")}</select>
+      <label>Раздел</label><select id="qTopic">${topicsOpts}</select>
+      <label>Уровень</label><select id="qLevel"><option value="1">1 - Лёгкое</option><option value="2">2 - Среднее</option><option value="3">3 - Сложное</option></select>
+      <label>Текст (LaTeX)</label><textarea id="qLatex" rows="3"></textarea>
+      <label>Изображение к заданию</label><input type="file" id="qImageFile" accept="image/jpeg,image/png,image/gif,image/webp"><div id="qImagePreview" class="small muted"></div><button type="button" class="danger small" id="deleteQuestionImageBtn" style="display:none;">✕ Удалить изображение</button>
+      <label>Правильный ответ</label><input id="qAnswer"><label>Пояснение</label><textarea id="qExpl" rows="2"></textarea>
+      <button onclick="saveQuestion()">Сохранить</button><div id="qPreview" class="notice"></div>
+    `;
+    window._tempQs = qs;
+    window._currentQuestionIndex = 0;
+    window._tempImageData = "";
+    document.getElementById("qImageFile").addEventListener("change", function(e){ const file = e.target.files[0]; if(file && file.type.startsWith("image/")){ const reader = new FileReader(); reader.onload = function(ev){ window._tempImageData = ev.target.result; document.getElementById("qImagePreview").innerHTML = `<img src="${ev.target.result}" class="preview-img"><br>`; document.getElementById("deleteQuestionImageBtn").style.display = "inline-block"; previewQ(); }; reader.readAsDataURL(file); } else { window._tempImageData = ""; document.getElementById("qImagePreview").innerHTML = ""; document.getElementById("deleteQuestionImageBtn").style.display = "none"; } });
+    document.getElementById("deleteQuestionImageBtn")?.addEventListener("click", function(){ window._tempImageData = ""; document.getElementById("qImagePreview").innerHTML = ""; document.getElementById("deleteQuestionImageBtn").style.display = "none"; document.getElementById("qImageFile").value = ""; previewQ(); });
+    loadQuestion();
+  }
+  function loadQuestion(){
+    const idx = document.getElementById("qSelect").value;
+    window._currentQuestionIndex = parseInt(idx);
+    const q = window._tempQs[idx];
+    if(q){
+      document.getElementById("qTopic").value = q.topicId;
+      document.getElementById("qLevel").value = q.level;
+      document.getElementById("qLatex").value = q.latex;
+      document.getElementById("qAnswer").value = q.correctAnswer;
+      document.getElementById("qExpl").value = q.explanation||"";
+      window._tempImageData = q.imageData || "";
+      if(window._tempImageData){ document.getElementById("qImagePreview").innerHTML = `<img src="${escapeHTML(window._tempImageData)}" class="preview-img"><br>`; document.getElementById("deleteQuestionImageBtn").style.display = "inline-block"; }
+      previewQ();
+    }
+  }
+  async function saveQuestion(){
+    const idx = window._currentQuestionIndex;
+    const q = window._tempQs[idx];
+    if(q){
+      q.topicId = document.getElementById("qTopic").value;
+      q.level = parseInt(document.getElementById("qLevel").value);
+      q.latex = document.getElementById("qLatex").value;
+      q.correctAnswer = document.getElementById("qAnswer").value;
+      q.explanation = document.getElementById("qExpl").value;
+      q.imageData = window._tempImageData || "";
+      const settings = await getSettings();
+      settings.questionsData = window._tempQs;
+      await saveSettings(settings);
+      alert("Сохранено");
+      renderTeacherDashboard("tests");
+    }
+  }
+  function previewQ(){
+    const latex = document.getElementById("qLatex").value;
+    let imgHtml = window._tempImageData ? `<div><img src="${escapeHTML(window._tempImageData)}" class="question-image" style="max-width:200px"></div>` : "";
+    const preview = document.getElementById("qPreview");
+    if(preview) preview.innerHTML = `<b>Задание:</b> ${formatText(latex)}${imgHtml}<br><b>Ответ:</b> ${escapeHTML(document.getElementById("qAnswer").value)}`;
+    renderMathInElement(preview);
+  }
+  async function resetQuestions(){
+    if(confirm("Сбросить все вопросы диагностики к исходным?")){
+      const settings = await getSettings();
+      settings.questionsData = JSON.parse(JSON.stringify(defaultQuestionsData));
+      await saveSettings(settings);
+      renderTeacherDashboard("tests");
+    }
+  }
+
+  // Настройки (экспорт/импорт — только для материалов, не трогают учеников)
+  async function renderTeacherSettings(){
+    const settings = await getSettings();
+    document.getElementById("teacherPanel").innerHTML = `
+      <div class="card"><h3>Настройки</h3><label>Telegram бот (username без @)</label><input id="tgBot" value="${escapeHTML(settings.telegramBotUsername||'')}"><p class="small">Для обратной связи через Telegram (если нужно).</p><button onclick="saveTg()">Сохранить</button><hr><h4>Синхронизация материалов между браузерами</h4><p class="small">Экспортируйте настройки (вопросы и материалы) из Firebase или импортируйте из файла.</p><button class="secondary" onclick="exportSettings()">📤 Экспортировать настройки (вопросы + материалы)</button><div style="margin-top:12px;"><label for="importFile">📥 Импортировать настройки из файла:</label><input type="file" id="importFile" accept=".json" style="margin-top:6px;"><button onclick="importSettings()">Загрузить и применить</button></div><hr><button class="danger" onclick="resetAll()">⚠️ Сбросить ВСЕ настройки к стандартным</button></div>
+    `;
+  }
+  async function saveTg(){
+    const settings = await getSettings();
+    settings.telegramBotUsername = document.getElementById("tgBot").value.trim();
+    await saveSettings(settings);
+    alert("Сохранено");
+  }
+  async function resetAll(){
+    if(confirm("Сбросить все материалы, вопросы и настройки?")){
+      const defaultData = { questionsData: JSON.parse(JSON.stringify(defaultQuestionsData)), materials: JSON.parse(JSON.stringify(defaultMaterials)), telegramBotUsername: "" };
+      await saveSettings(defaultData);
+      renderTeacherDashboard("materials");
+    }
+  }
+  function exportSettings(){
+    (async()=>{
+      const settings = await getSettings();
+      const dataStr = JSON.stringify(settings, null, 2);
+      const blob = new Blob([dataStr], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "mathroute_settings.json"; a.click();
+      URL.revokeObjectURL(url);
+    })();
+  }
+  function importSettings(){
+    const file = document.getElementById("importFile").files[0];
+    if(!file) return alert("Выберите файл");
+    const reader = new FileReader();
+    reader.onload = async function(e){
+      try {
+        const imported = JSON.parse(e.target.result);
+        if(imported.questionsData && imported.materials){
+          await saveSettings(imported);
+          alert("Настройки импортированы! Страница обновится.");
+          location.reload();
+        } else alert("Неверный формат файла");
+      } catch(err){ alert("Ошибка: "+err.message); }
+    };
+    reader.readAsText(file);
+  }
+
+  // ======================== ЧАТ-БОТ ========================
+  let currentChatbotTopic = null;
+  function initChatbot(){
+    const container = document.getElementById("chatbotContainer");
+    if(!container) return;
+    container.innerHTML = `<button class="chatbot-btn" id="chatbotToggle">💬</button><div class="chatbot-window hide" id="chatbotWindow"><div class="chatbot-header"><span>Помощник MathRoute</span><button id="closeChat" style="background:none;border:none;color:white;font-size:20px;cursor:pointer">✕</button></div><div class="chatbot-messages" id="chatMessages"><div class="chatbot-message bot">Привет! Я помогу с заданиями. Напиши вопрос по текущей теме.</div></div><div class="chatbot-input"><input type="text" id="chatInput" placeholder="Спроси..."><button id="sendChat">➤</button></div></div>`;
+    const toggle = document.getElementById("chatbotToggle");
+    const win = document.getElementById("chatbotWindow");
+    const close = document.getElementById("closeChat");
+    const send = document.getElementById("sendChat");
+    const input = document.getElementById("chatInput");
+    toggle.onclick = () => win.classList.toggle("hide");
+    close.onclick = () => win.classList.add("hide");
+    send.onclick = () => sendMessage();
+    input.addEventListener("keypress", (e) => { if(e.key==="Enter") sendMessage(); });
+  }
+  function sendMessage(){
+    const input = document.getElementById("chatInput");
+    const msg = input.value.trim();
+    if(!msg) return;
+    const msgsDiv = document.getElementById("chatMessages");
+    msgsDiv.innerHTML += `<div class="chatbot-message user">${escapeHTML(msg)}</div>`;
+    input.value = "";
+    msgsDiv.scrollTop = msgsDiv.scrollHeight;
+    setTimeout(() => {
+      const reply = botReply(msg, currentChatbotTopic);
+      msgsDiv.innerHTML += `<div class="chatbot-message bot">${reply}</div>`;
+      msgsDiv.scrollTop = msgsDiv.scrollHeight;
+    }, 300);
+  }
+  function botReply(question, topicId){
+    const q = question.toLowerCase();
+    const topic = topicId ? topicById(topicId) : null;
+    const topicName = topic ? topic.title : "математике";
+    if(q.includes("помощь") || q.includes("как решить")){
+      return `По теме «${topicName}» рекомендую повторить материал выше, затем попробовать решить задания. Если конкретный номер — напиши его.`;
+    }
+    if(q.includes("формула") || q.includes("формулу")){
+      if(topicId==="equations") return "Квадратное уравнение: ax²+bx+c=0, дискриминант D=b²−4ac, корни x=(-b±√D)/(2a).";
+      if(topicId==="progressions") return "Арифметическая прогрессия: an=a1+(n-1)d, сумма Sn=(a1+an)*n/2.";
+      if(topicId==="functions") return "Вершина параболы y=a(x-p)²+q: (p,q).";
+      return "Напишите конкретную тему: уравнения, прогрессии, функции, векторы, вероятность.";
+    }
+    if(q.includes("спасибо")) return "Пожалуйста! Обращайся ещё 😊";
+    if(q.includes("привет")) return "Привет! Задавай вопросы по заданиям.";
+    return `По теме «${topicName}» я могу дать подсказку. Посмотри материал выше и попробуй решить. Если нужна формула — спроси "формула".`;
+  }
+  function updateChatbotContext(topicId){ currentChatbotTopic = topicId; }
+
+  // ======================== ГЛАВНАЯ ========================
+  async function renderHome(){
+    const studentsCount = getStudents().length;
+    setApp(`
+      <div class="card hero"><div class="pill">Сайт, предназначенный для индивидуализации обучения</div><h1>Коротко обо мне:</h1><p>Всем привет! Меня зовут Тимофеев Алексей Нюргунович. Я являюсь студентом 5 курса ИМИ СВФУ. Предоставляю Вашему внимаю созданный мною образовательный веб-сайт, по которому Вы сможете повторить, систематизировать и обобщить свои знания по математике за курс 5-9 классов</p><div class="grid grid-2"><div class="card"><h3>Ученик</h3><button onclick="renderStudentStart()">Начать</button></div><div class="card"><h3>Учитель</h3><button class="secondary" onclick="renderTeacherLogin()">Вход</button></div></div><p class="footer-note">Зарегистрировано: ${studentsCount}</p></div>
+    `);
+  }
+
+  // ======================== ЗАПУСК ========================
+  initChatbot();
+  // Не создаём фейковых учеников автоматически, так как они уже есть в localStorage.
+  // Если хотите, чтобы фейковые создавались только при пустом списке, можно добавить,
+  // но по условию "не трогай учеников" — оставляем как есть.
+  renderHome();
+
+  // Экспорт глобальных функций
+  window.updateChatbotContext = updateChatbotContext;
+  window.checkTaskLevel = checkTaskLevel;
+  window.advanceLevel = advanceLevel;
+  window.completeTopic = completeTopic;
+  window.renderStudentStart = renderStudentStart;
+  window.renderDiagnostic = renderDiagnostic;
+  window.renderTeacherLogin = renderTeacherLogin;
+  window.renderHome = renderHome;
+  window.openSelectedStudent = openSelectedStudent;
+  window.registerStudent = registerStudent;
+  window.finishDiagnostic = finishDiagnostic;
+  window.renderRegister = renderRegister;
+  window.renderQuest = renderQuest;
+  window.renderTeacherDashboard = renderTeacherDashboard;
+  window.loadMaterial = loadMaterial;
+  window.saveMaterial = saveMaterial;
+  window.addLevelTask = addLevelTask;
+  window.removeLevelTask = removeLevelTask;
+  window.renderLevelEditor = renderLevelEditor;
+  window.previewMaterial = previewMaterial;
+  window.loadQuestion = loadQuestion;
+  window.saveQuestion = saveQuestion;
+  window.previewQ = previewQ;
+  window.resetQuestions = resetQuestions;
+  window.saveTg = saveTg;
+  window.resetAll = resetAll;
+  window.clearAllStudents = clearAllStudents;
+  window.sendMessage = sendMessage;
+  window.showStudentDetails = showStudentDetails;
+  window.exportSettings = exportSettings;
+  window.importSettings = importSettings;
+</script>
+</body>
+</html>
